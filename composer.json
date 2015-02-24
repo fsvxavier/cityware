@@ -1,6 +1,6 @@
 {
-    "name": "fsvxavier/linx",
-    "description": "ZF2 Linx Library",
+    "name": "fsvxavier/cityware",
+    "description": "ZF2 Cityware Library",
     "type": "library",
     "version": "1.0.0",
     "keywords": [
@@ -15,12 +15,12 @@
 	"repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/fsvxavier/linx"
+            "url": "https://github.com/fsvxavier/cityware"
         }
     ],
     "autoload": {
         "psr-0": {
-            "Linx\\": "library/"
+            "Cityware\\": "library/"
         }
     }
 }
