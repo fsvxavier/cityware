@@ -1,0 +1,1 @@
+php pluginmap_generator.php -l "..\Cityware"

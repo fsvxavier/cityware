@@ -1,0 +1,26 @@
+{
+    "name": "fsvxavier/linx",
+    "description": "ZF2 Linx Library",
+    "type": "library",
+    "version": "1.0.0",
+    "keywords": [
+        "framework",
+        "zf2",
+        "library"
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zendframework": "2.3.*"
+    },
+	"repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/fsvxavier/linx"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "Linx\\": "library/"
+        }
+    }
+}
