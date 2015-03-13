@@ -90,7 +90,6 @@ class AuthAdapterZend extends AuthAdapter implements AdapterInterface
         /* Criptografa a senha */
         $crypt = new Security\Crypt();
         $credential = $crypt->encrypt($senha3);
-        
 
         //Define os dados para processar o login
         $this->setIdentity($identity)->setCredential($credential);

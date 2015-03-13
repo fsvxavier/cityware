@@ -21,7 +21,6 @@ abstract class AbstractActionController extends ZendAbstractActionController {
     private $headTitle = Array(), $headCssLink = Array(), $headCssStyle = Array(), $headJsScript = Array(),
             $headJsLink = Array(), $metaName = Array(), $metaProperty = Array(), $metaHttpEquiv = Array();
     private $viewModel = null, $doctype, $contentType, $contentLang, $favicon, $sessionAdapter, $globalConfig, $image;
-    public $linkModule, $linkController, $linkAction;
 
     public function __construct() {
 
@@ -32,31 +31,22 @@ abstract class AbstractActionController extends ZendAbstractActionController {
 
         //$this->image = $this->globalConfig['image'];
 
+        $this->assign('linkDefault', LINK_DEFAULT);
+        $this->assign('linkModule', LINK_DEFAULT . MODULE_NAME . '/');
+        $this->assign('linkController', LINK_DEFAULT . MODULE_NAME . '/' . strtolower(CONTROLLER_NAME));
+        $this->assign('linkAction', LINK_DEFAULT . MODULE_NAME . '/' . strtolower(CONTROLLER_NAME) . '/' . strtolower(ACTION_NAME));
+        $this->assign('urlDefault', URL_DEFAULT);
+        $this->assign('urlUpload', URL_UPLOAD);
+        $this->assign('urlStatic', URL_STATIC);
+        $this->assign('publicPath', PUBLIC_PATH);
+        $this->assign('baseModule', MODULE_NAME);
+        $this->assign('baseController', CONTROLLER_NAME);
+        $this->assign('baseAction', ACTION_NAME);
+        $this->assign('langDefault', LANGUAGE);
+
         /* Tratamento das variáveis padrões de modulo, controlador e action */
         $eventManager = $this->getEventManager();
         $eventManager->attach(\Zend\Mvc\MvcEvent::EVENT_DISPATCH, function (\Zend\Mvc\MvcEvent $e) {
-
-            $module = $this->params('module', strtolower(__NAMESPACE__));
-            $controller = $this->params('__CONTROLLER__');
-            $action = $this->params('action');
-
-            $this->linkModule = LINK_DEFAULT . $module;
-            $this->linkController = LINK_DEFAULT . $module . '/' . strtolower($controller);
-            $this->linkAction = LINK_DEFAULT . $module . '/' . strtolower($controller) . '/' . strtolower($action);
-
-            $this->assign('linkDefault', LINK_DEFAULT);
-            $this->assign('linkModule', $this->linkModule . '/');
-            $this->assign('linkController', $this->linkController);
-            $this->assign('linkAction', $this->linkAction);
-            $this->assign('urlDefault', URL_DEFAULT);
-            $this->assign('urlUpload', URL_UPLOAD);
-            $this->assign('urlStatic', URL_STATIC);
-            $this->assign('publicPath', PUBLIC_PATH);
-            $this->assign('baseModule', $module);
-            $this->assign('baseController', $controller);
-            $this->assign('baseAction', $action);
-            $this->assign('langDefault', LANGUAGE);
-
             $this->processHelpers($e);
         });
     }

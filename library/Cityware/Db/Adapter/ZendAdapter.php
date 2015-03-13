@@ -1041,7 +1041,8 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
             /*
              * DEFINE OS PARAMETROS DE ATUALIZACAO NA QUERY
              */
-            $insert->values(self::$varSqlInsert);
+            $insert->values(array());
+            $insert->columns(self::$varSqlInsert);
 
             /*
              * CASO O DEBUG ESTEJA ATIVO IMPRIME A QUERY (COMANDO) NA TELA

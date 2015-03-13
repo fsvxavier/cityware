@@ -99,15 +99,11 @@ class Str {
         
         $breaks = array("\r\n","\n\r","\r","\n");
         $breaksNew = array('\r\n','\n\r','\r','\n');
-        $str = str_ireplace($breaks, $breaksNew, $str);
+        $str1 = str_ireplace($breaks, $breaksNew, $str);
         
-        $text = preg_replace('/[[:^print:]]/', '', $str);
+        $text1 = preg_replace('/[[:^print:]]/', '', $str1);
         
-        echo '<pre>';
-        print_r($text);
-        exit;
-        
-        $text = str_ireplace($breaksNew, $breaks, $text);
+        $text = str_ireplace($breaksNew, $breaks, $text1);
         
         return $text;
     }
