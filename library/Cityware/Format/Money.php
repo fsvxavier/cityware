@@ -12,8 +12,8 @@ namespace Cityware\Format;
  *
  * @author fabricio.xavier
  */
-final class Money
-{
+final class Money {
+
     /**
      * Retorna o número de parcelas
      * @param  float   $total
@@ -21,8 +21,7 @@ final class Money
      * @param  float   $valor_minimo
      * @return integer
      */
-    public static function getNumParcelas($total, $maxParcelas, $valor_minimo)
-    {
+    public static function getNumParcelas($total, $maxParcelas, $valor_minimo) {
         $nParcelas = $maxParcelas;
 
         //verifica o valor minimo permitido para cada parcela
@@ -45,8 +44,7 @@ final class Money
      * @param  integer $semjuros
      * @return type
      */
-    public static function calcularParcelamento($capital, $taxa, $tempo, $semjuros)
-    {
+    public static function calcularParcelamento($capital, $taxa, $tempo, $semjuros) {
         $parcelamento = array();
         for ($i = 1; $i <= $tempo; $i++) {
             $m = $capital * pow((1 + $taxa / 100), $i);
@@ -75,8 +73,7 @@ final class Money
      * @param  float   $taxa
      * @return float
      */
-    public static function getValorParcela($total, $parcela, $taxa)
-    {
+    public static function getValorParcela($total, $parcela, $taxa) {
         if (!is_numeric($total) || $total <= 0) {
             return (false);
         }
@@ -108,15 +105,13 @@ final class Money
      * @param  integer $perc
      * @return integer
      */
-    public static function pegaPorcentagemValor($valor, $perc)
-    {
+    public static function pegaPorcentagemValor($valor, $perc) {
         $porcent = ($perc / 100) * $valor;
 
         return $porcent;
     }
 
-    public static function formataValor($valor, $decDb = '.', $casasDecimais = 2, $mrcDecimal = ',', $mrcMilhar = '.')
-    {
+    public static function formataValor($valor, $decDb = '.', $casasDecimais = 2, $mrcDecimal = ',', $mrcMilhar = '.') {
         if ($valor != NULL and $valor != "" and $valor > 0) {
 
             $decimal = explode($decDb, $valor);
@@ -131,11 +126,11 @@ final class Money
                         $decimal[0] = str_replace(",", "", $decimal[0]);
                         $decimal[0] = str_replace(".", "", $decimal[0]);
                         $decimal[1] = $decimal[1] . $zeroDecimal;
-                        $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimal[1];
+                        $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimal[1];
                     } elseif (isset($decimal[1]) and strlen($decimal[1]) == $casasDecimais) {
                         $decimal[0] = str_replace(",", "", $decimal[0]);
                         $decimal[0] = str_replace(".", "", $decimal[0]);
-                        $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimal[1];
+                        $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimal[1];
                     } elseif (isset($decimal[1]) and strlen($decimal[1]) > $casasDecimais) {
                         $decimal[0] = str_replace(",", "", $decimal[0]);
                         $decimal[0] = str_replace(".", "", $decimal[0]);
@@ -143,13 +138,13 @@ final class Money
                         for ($i = 0; $i < $casasDecimais; $i++) {
                             $decimais .= $decimal[1][$i];
                         }
-                        $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimais;
+                        $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimais;
                     }
                 } else {
                     for ($i = 0; $i < $casasDecimais; $i++) {
                         $zeroDecimal .= "0";
                     }
-                    $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $zeroDecimal;
+                    $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $zeroDecimal;
                 }
             } else {
                 if (substr_count($valor, $decDb) > 0) {
@@ -161,11 +156,11 @@ final class Money
                             $zeroDecimal .= "0";
                         }
                         $decimal[1] = $decimal[1] . $zeroDecimal;
-                        $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimal[1];
+                        $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimal[1];
                     } elseif (isset($decimal[1]) and strlen($decimal[1]) == $casasDecimais) {
                         $decimal[0] = str_replace(",", "", $decimal[0]);
                         $decimal[0] = str_replace(".", "", $decimal[0]);
-                        $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimal[1];
+                        $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimal[1];
                     } elseif (isset($decimal[1]) and strlen($decimal[1]) > $casasDecimais) {
                         $decimal[0] = str_replace(",", "", $decimal[0]);
                         $decimal[0] = str_replace(".", "", $decimal[0]);
@@ -173,7 +168,7 @@ final class Money
                         for ($i = 0; $i < $casasDecimais; $i++) {
                             $decimais .= $decimal[1][$i];
                         }
-                        $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimais;
+                        $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimais;
                     } elseif (!isset($decimal[1])) {
                         $decimal[0] = str_replace(",", "", $decimal[0]);
                         $decimal[0] = str_replace(".", "", $decimal[0]);
@@ -181,13 +176,13 @@ final class Money
                         for ($i = 0; $i < $casasDecimais; $i++) {
                             $decimais .= "0";
                         }
-                        $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimais;
+                        $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $decimais;
                     }
                 } else {
                     for ($i = 0; $i < $casasDecimais; $i++) {
                         $zeroDecimal .= "0";
                     }
-                    $valor = number_format($decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $zeroDecimal;
+                    $valor = number_format((int) $decimal[0], 0, "", $mrcMilhar) . $mrcDecimal . $zeroDecimal;
                 }
             }
         } else {
@@ -204,8 +199,7 @@ final class Money
      * @param  boolean $useSimbol
      * @return string
      */
-    public static function currencyFormat($format, $number, $useSimbol = false)
-    {
+    public static function currencyFormat($format, $number, $useSimbol = false) {
         $regex = '/%((?:[\^!\-]|\+|\(|\=.)*)([0-9]+)?' .
                 '(?:#([0-9]+))?(?:\.([0-9]+))?([in%])/';
         if (setlocale(LC_MONETARY, 0) == 'C') {

@@ -32,6 +32,7 @@ abstract class AbstractActionController%moduleName% extends AbstractActionContro
         $this->setDoctype();
         $this->setContentType();
         $this->setMetaName('viewport', 'width=device-width, initial-scale=1.0');
+        $this->setMetaHttpEquiv('X-UA-Compatible', 'IE=edge');
     }
 
     /**

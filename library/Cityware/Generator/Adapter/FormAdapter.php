@@ -100,7 +100,9 @@ class FormAdapter extends AdapterAbstract {
 
             $fields .= "\n\n'{$value->getName()}' => '{$value->getName()}',\n
                 '{$value->getName()}_description' => 'Descrição',\n
+                '{$value->getName()}_placeholder' => 'Placeholder',\n
                 '{$value->getName()}_tooltip' => 'Tooltip',\n";
+                
 
             if (strtolower($value->getName()) === 'ind_status') {
                 $fields .= "'{$value->getName()}_values' => 'Ativo,Bloqueado',\n";
@@ -221,6 +223,7 @@ class FormAdapter extends AdapterAbstract {
                 $returnBody .= "{$key}.name = \"{$key}\"\n";
                 $returnBody .= "{$key}.tooltip = \"false\"\n";
                 $returnBody .= "{$key}.description = \"false\"\n";
+                $returnBody .= "{$key}.placeholder = \"false\"\n";
             }
             $return .= $returnType . $returnBody . $returnValidation . $returnExtra . "\n";
         }

@@ -115,5 +115,13 @@ class DateOperations {
     public function render($format = 'Y-m-d') {
         echo $this->dateTime->format($format);
     }
+    
+    /**
+     * Função de formatação do resultado
+     * @param string $format
+     */
+    public function format($format = 'Y-m-d') {
+        return $this->dateTime->format($format);
+    }
 
 }

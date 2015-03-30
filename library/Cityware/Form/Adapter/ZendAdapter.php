@@ -15,9 +15,17 @@ use Zend\Validator\AbstractValidator;
 class ZendAdapter extends ZendForm implements AdapterInterface {
 
     private $nameIniForm, $formDefaultConfig, $formFiledsConfig, $formButtonsConfig;
-    private $urlAction, $translator, $moduleName, $controllerName, $actionName;
+    private $urlAction, $translator, $moduleName, $controllerName, $actionName, $editFlag = false;
     private $aOptions = Array(), $aAttributes = Array(), $selectOptions = Array();
     private $aParams = Array(), $populateParams = Array(), $selectExternalOptions = Array();
+
+    public function getEditFlag() {
+        return $this->editFlag;
+    }
+
+    public function setEditFlag($editFlag) {
+        $this->editFlag = $editFlag;
+    }
 
     public function getPopulateParams() {
         return $this->populateParams;
@@ -163,12 +171,14 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
      * @return \Cityware\Form\Adapter\ZendAdapter
      */
     private function prepareTranslator() {
-        
+
         //Create the translator
         $translator = new MvcTranslator(new Translator());
 
         //Add the translation file. Here we are using the Portuguese-Brazilian translation
         $translator->addTranslationFile('PhpArray', MODULE_TRANSLATE . $translator->getLocale() . DS . $this->controllerName . DS . $this->getNameIniForm() . '.php', 'default', $translator->getLocale());
+        $translator->addTranslationFile('PhpArray', MODULE_TRANSLATE . $translator->getLocale() . DS . "Zend_Validate.php", 'default', $translator->getLocale());
+        $translator->addTranslationFile('PhpArray', MODULE_TRANSLATE . $translator->getLocale() . DS . "Zend_Captcha.php", 'default', $translator->getLocale());
 
         //Set the default translator for validators
         AbstractValidator::setDefaultTranslator($translator);
@@ -206,7 +216,7 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
         } else {
             $this->setAttribute('id', 'formBy' . ucfirst($this->controllerName) . ucfirst($this->actionName));
         }
-        
+
         $this->setAttribute('class', 'form-cms');
 
         return $this;
@@ -314,10 +324,11 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
     private function preparePopulateForm() {
         $populateValues = array();
 
-        if (trim(strtolower($this->actionName)) == 'edit') {
+        if (trim(strtolower($this->actionName)) == 'edit' or $this->editFlag == true) {
 
             /* Instancia o Model de formulários */
-            $relationship = new \Admin\Models\Forms();
+            $moduleName = '\\' . ucfirst($this->moduleName) . '\\Models\\Forms';
+            $relationship = new $moduleName();
             $relationship->setConfigForm($this->formDefaultConfig);
 
             /* Verifica se há dados externos se não popula com dados do banco */
@@ -347,11 +358,20 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
                         }
                     }
                 }
+                
+                if (isset($params['concatcolumn']) and ! empty($params['concatcolumn'])) {
+                    if(isset($params['concattype']) and $params['concattype'] == 'inverse'){
+                        $populateValues[$fieldName] = $populateValues[$params['concatcolumn']] . $params['concatseparator'] . $populateValues[$fieldName];
+                    } else {
+                        $populateValues[$fieldName] = $populateValues[$fieldName] . $params['concatseparator'] . $populateValues[$params['concatcolumn']];
+                    }
+                }
 
                 if (strtolower($params['type']) == 'money') {
-                    $populateValues[$fieldName] = \Cityware\Format\Money::formataValor($populateValues[$fieldName], '.', 2, '.', '');
+                    $populateValues[$fieldName] = \Cityware\Format\Money::formataValor($populateValues[$fieldName], '.', 2, ',', '.');
                 }
             }
+            
             $this->populateValues($populateValues);
             $populateValues = array();
         } else {
@@ -425,8 +445,10 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
      * @param type $params
      */
     private function relationshipFields($params) {
+
         /* Pega dados do banco */
-        $relationship = new \Admin\Models\Forms();
+        $moduleName = '\\' . ucfirst($this->moduleName) . '\\Models\\Forms';
+        $relationship = new $moduleName();
         $data = $relationship->populateSelect($params);
 
         /* Formata os dados do banco para o padrão do zend_form */
@@ -459,7 +481,8 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
      */
     private function dependRelationshipFields($params) {
         $multiOptions = Array();
-        $relationship = new \Admin\Models\Forms();
+        $moduleName = '\\' . ucfirst($this->moduleName) . '\\Models\\Forms';
+        $relationship = new $moduleName();
 
         /* Define o schema da tabela se definido */
         if (trim(strtolower($this->actionName)) == 'edit') {
@@ -527,7 +550,7 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
         $this->aOptions['twb-layout'] = 'inline';
 
         $element->setValue($this->getTranslator('btn_' . $buttonName));
-        
+
         $element->setLabel($this->getTranslator('btn_' . $buttonName));
         $element->setAttributes($this->aAttributes);
         $element->setOptions($this->aOptions);
@@ -580,8 +603,6 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
                 $element = new ZendFormElement\Text($fieldName);
 
                 $element->setLabel($this->getTranslator($fieldName) . $extraLabel);
-                /* Verifica se utilizará mascara no campo */
-                $this->aAttributes['data-mask'] = (isset($fieldParams['mask']) and ! empty($fieldParams['mask'])) ? $fieldParams['mask'] : null;
                 $this->aAttributes['class'] = 'form-input';
                 break;
 
@@ -663,7 +684,13 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
             case 'select':
                 $element = new ZendFormElement\Select($fieldName, Array('disable_inarray_validator' => true));
                 $element->setLabel($this->getTranslator($fieldName) . $extraLabel);
-                $this->selectOptions[''] = "---------";
+
+                if (isset($fieldParams['placeholder']) and strtolower($fieldParams['placeholder']) == 'true') {
+                    $this->selectOptions[''] = $this->getTranslator($fieldName . '_placeholder');
+                } else {
+                    $this->selectOptions[''] = "---------";
+                }
+
                 $this->aAttributes['class'] = 'form-input-select';
                 break;
 
@@ -702,6 +729,12 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
                 $element = new ZendFormElement\File($fieldName);
                 $element->setLabel($this->getTranslator($fieldName) . $extraLabel);
                 break;
+            
+            case 'money':
+                $element = new ZendFormElement\Text($fieldName);
+                $element->setLabel($this->getTranslator($fieldName) . $extraLabel);
+                $this->aAttributes['class'] = 'form-input';
+                break;
 
             /* HTML5 Elements */
 
@@ -720,20 +753,31 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
                 $this->aAttributes['max'] = (date("Y") + 10) . '-12-31';
                 $this->aAttributes['class'] = 'form-input';
                 break;
+            
+            case 'dateage':
+                $element = new ZendFormElement\Date($fieldName);
+                $element->setLabel($this->getTranslator($fieldName) . $extraLabel);
+                $this->aAttributes['min'] = (date("Y") - 100) . '-01-01';
+                $this->aAttributes['max'] = (date("Y") + 100) . '-12-31';
+                $this->aAttributes['class'] = 'form-input';
+                break;
 
             /* Caso time */
             case 'time':
-                $element = new ZendFormElement\Time($fieldName);
+                $element = new ZendFormElement\DateTime($fieldName);
                 $element->setLabel($this->getTranslator($fieldName) . $extraLabel);
                 $this->aAttributes['class'] = 'form-input';
+                $this->aAttributes['min'] = '00:00:00';
+                $this->aAttributes['max'] = '23:59:59';
+                $this->aOptions['format'] = 'H:i:s';
                 break;
 
             /* Caso date */
             case 'datetime':
                 $element = new ZendFormElement\DateTime($fieldName);
                 $element->setLabel($this->getTranslator($fieldName) . $extraLabel);
-                $this->aAttributes['min'] = (date("Y") - 10) . '-01-01';
-                $this->aAttributes['max'] = (date("Y") + 10) . '-12-31';
+                $this->aAttributes['min'] = (date("Y") - 10) . '-01-01 00:00:00';
+                $this->aAttributes['max'] = (date("Y") + 10) . '-12-31 23:59:59';
                 $this->aAttributes['class'] = 'form-input';
                 break;
 
@@ -774,7 +818,11 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
             case 'status':
                 $element = new ZendFormElement\Select($fieldName, Array('disable_inarray_validator' => true));
                 $element->setLabel($this->getTranslator($fieldName) . $extraLabel);
-                $this->selectOptions[''] = "---------";
+                if (isset($fieldParams['placeholder']) and strtolower($fieldParams['placeholder']) == 'true') {
+                    $this->selectOptions[''] = $this->getTranslator($fieldName . '_placeholder');
+                } else {
+                    $this->selectOptions[''] = "---------";
+                }
                 $this->aAttributes['class'] = 'form-input-select';
                 break;
         }
@@ -790,7 +838,7 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
 
         /* Define a descrição abaixo do campo */
         if (isset($fieldParams['description']) and $fieldParams['description'] == 'true') {
-            $this->aOptions['description'] = $this->getTranslator($fieldName . '_description');
+            $this->aOptions['help-block'] = $this->getTranslator($fieldName . '_description');
         }
 
         /* Verifica se foi setado grupo do campo e implementa */
@@ -811,6 +859,21 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
         /* Verifica se foi setado desabilitado e implementa */
         if (isset($fieldParams['disabled']) and strtolower($fieldParams['disabled']) == 'true') {
             $this->aAttributes['disabled'] = true;
+        }
+
+        /* Verifica se utilizará mascara no campo */
+        if (isset($fieldParams['mask']) and ! empty($fieldParams['mask'])) {
+            $this->aAttributes['data-inputmask'] = $fieldParams['mask'];
+        }
+
+        /* Verifica se foi setado inputgroup tipo append e implementa */
+        if (isset($fieldParams['groupappend']) and ! empty($fieldParams['groupappend'])) {
+            $this->aOptions['add-on-append'] = $fieldParams['groupappend'];
+        }
+
+        /* Verifica se foi setado inputgroup tipo prepend e implementa */
+        if (isset($fieldParams['groupprepend']) and ! empty($fieldParams['groupprepend'])) {
+            $this->aOptions['add-on-prepend'] = $fieldParams['groupprepend'];
         }
 
         /* Verifica se foi setado como array e implementa */
@@ -850,6 +913,9 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
             $validatorsField['name'] = $params['name'];
             $validatorsField['required'] = true;
             $validatorsField['validators'][$iCount] = Array('name' => 'NotEmpty');
+            $validatorsField['validators'][$iCount]['options']['messages'] = Array(
+                \Zend\Validator\NotEmpty::IS_EMPTY => 'Campo de preenchimento obrigatório'
+            );
             $iCount++;
         } else {
             $validatorsField['name'] = $params['name'];
@@ -924,10 +990,25 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
                         );
                         break;
                     case 'date':
+                        $options['format'] = 'Y-m-d';
                         $validatorsField['validators'][$iCount] = Array(
                             'name' => 'Date',
                             'options' => $options
                         );
+                        break;
+                    case 'time':
+                        $options['format'] = 'H:i:s';
+                        $validatorsField['validators'][$iCount] = Array(
+                            'name' => 'Date',
+                            'options' => $options
+                        );
+
+                        break;
+                    case 'datetime':
+                        $validatorObj = new \Zend\I18n\Validator\DateTime();
+                        $validatorObj->setDateType(\IntlDateFormatter::SHORT);
+                        $validatorObj->setTimeType(\IntlDateFormatter::SHORT);
+                        $validatorsField['validators'][$iCount] = $validatorChain->attach($validatorObj);
                         break;
                     case 'recordexists':
 
@@ -1079,7 +1160,7 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
                         }
 
                         $validatorsField['validators'][$iCount] = Array(
-                            'name' => 'PostCode',
+                            'name' => 'LessThan',
                             'options' => $options
                         );
                         break;
