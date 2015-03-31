@@ -358,7 +358,7 @@ final class Date {
      * @param  integer $month
      * @return string
      */
-    public function extensionMonth($month) {
+    public static function extensionMonth($month) {
         switch ($month) {
             case '01':
             case 1:

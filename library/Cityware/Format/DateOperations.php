@@ -32,6 +32,17 @@ class DateOperations {
         }
         return $this;
     }
+    
+    public function parseDate() {
+        return \date_parse($this->format());
+    }
+    
+    public function dateModify($modify) {
+        $modified = (array)$this->dateTime->modify($modify);
+        $date = explode(' ', $modified['date']);
+        
+        return $this->setDate($date[0])->parseDate();
+    }
 
     /**
      * 

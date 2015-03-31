@@ -82,16 +82,17 @@ class ModuleAdapter extends AdapterAbstract
     {
         $moduleName = ucfirst($this->getModule());
         $moduleNameLower = strtolower($this->getModule());
+        $moduleNameUpper = strtoupper($this->getModule());
 
         /* Criação do arquivo de configuração do módulo */
         $module_config_php = file_get_contents(dirname(__FILE__) . DS . 'Module' . DS . 'Module_config_php.tpl');
-        $moduleConfigPhp = str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_config_php));
+        $moduleConfigPhp = str_replace("%moduleNameUpper%", $moduleNameUpper, str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_config_php)));
         file_put_contents(MODULES_PATH . ucfirst($this->getModule()) . DS . 'config' . DS . 'module.config.php', "<?php\n\n".$moduleConfigPhp);
         chmod(MODULES_PATH . ucfirst($this->getModule()) . DS . 'config' . DS . 'module.config.php', 0644);
 
         /* Criação do arquivo de definição do módulo */
         $module_php = file_get_contents(dirname(__FILE__) . DS . 'Module' . DS . 'Module_php.tpl');
-        $modulePhp = str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_php));
+        $modulePhp = str_replace("%moduleNameUpper%", $moduleNameUpper, str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_php)));
         file_put_contents(MODULES_PATH . ucfirst($this->getModule()) . DS . 'Module.php', "<?php\n\n".$modulePhp);
         chmod(MODULES_PATH . ucfirst($this->getModule()) . DS . 'Module.php', 0644);
     }
@@ -100,22 +101,23 @@ class ModuleAdapter extends AdapterAbstract
     {
         $moduleName = ucfirst($this->getModule());
         $moduleNameLower = strtolower($this->getModule());
+        $moduleNameUpper = strtoupper($this->getModule());
 
         /* Criação do arquivo de layout do módulo */
         $module_view_layout = file_get_contents(dirname(__FILE__) . DS . 'Module' . DS . 'Module_view_layout.tpl');
-        $moduleViewLayout = str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_view_layout));
+        $moduleViewLayout = str_replace("%moduleNameUpper%", $moduleNameUpper, str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_view_layout)));
         file_put_contents(MODULES_PATH . ucfirst($this->getModule()) . DS . 'view' . DS . 'layout' . DS . $moduleNameLower.'.phtml', $moduleViewLayout);
         chmod(MODULES_PATH . ucfirst($this->getModule()) . DS . 'view' . DS . 'layout' . DS . $moduleNameLower.'.phtml', 0644);
 
         /* Criação do arquivo de erro 404 do módulo */
         $module_error_404 = file_get_contents(dirname(__FILE__) . DS . 'Module' . DS . 'Module_error_404.tpl');
-        $moduleError404 = str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_error_404));
+        $moduleError404 = str_replace("%moduleNameUpper%", $moduleNameUpper, str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_error_404)));
         file_put_contents(MODULES_PATH . ucfirst($this->getModule()) . DS . 'view' . DS . 'error' . DS . '404.phtml', $moduleError404);
         chmod(MODULES_PATH . ucfirst($this->getModule()) . DS . 'view' . DS . 'error' . DS . '404.phtml', 0644);
 
         /* Criação do arquivo de erro INDEX do módulo */
         $module_error_index = file_get_contents(dirname(__FILE__) . DS . 'Module' . DS . 'Module_error_index.tpl');
-        $moduleErrorIndex = str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_error_index));
+        $moduleErrorIndex = str_replace("%moduleNameUpper%", $moduleNameUpper, str_replace("%moduleName%", $moduleName, str_replace("%moduleNameLower%", $moduleNameLower, $module_error_index)));
         file_put_contents(MODULES_PATH . ucfirst($this->getModule()) . DS . 'view' . DS . 'error' . DS . 'index.phtml', $moduleErrorIndex);
         chmod(MODULES_PATH . ucfirst($this->getModule()) . DS . 'view' . DS . 'error' . DS . 'index.phtml', 0644);
     }

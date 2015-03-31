@@ -35,12 +35,26 @@ class Module {
             $sessionConfig->setOptions($config['session']);
 
             $sessionManager = new SessionManager($sessionConfig);
-            $sessionManager->regenerateId(true);
-            $chain = $sessionManager->getValidatorChain();
-            $chain->attach('session.validate', array(new \Zend\Session\Validator\HttpUserAgent(), 'isValid'));
-            $chain->attach('session.validate', array(new \Zend\Session\Validator\RemoteAddr(), 'isValid'));
-            $sessionManager->setValidatorChain($chain);
             $sessionManager->start();
+
+            $container = new \Zend\Session\Container(SESSION_%moduleNameUpper%);
+            if (!isset($container->init)) {
+                $serviceManager = $e->getApplication()->getServiceManager();
+                $request = $serviceManager->get('Request');
+
+                $sessionManager->regenerateId(true);
+                $container->init = 1;
+                $container->remoteAddr = $request->getServer()->get('REMOTE_ADDR');
+                $container->httpUserAgent = $request->getServer()->get('HTTP_USER_AGENT');
+
+                $chain = $sessionManager->getValidatorChain();
+                $validatorUserAgent = new \Zend\Session\Validator\HttpUserAgent($container->httpUserAgent);
+                $chain->attach('session.validate', array($validatorUserAgent, 'isValid'));
+                $validatorAddr = new \Zend\Session\Validator\RemoteAddr($container->remoteAddr);
+                $chain->attach('session.validate', array($validatorAddr, 'isValid'));
+
+                $sessionManager->setValidatorChain($chain);
+            }
 
             Container::setDefaultManager($sessionManager);
         }
