@@ -483,6 +483,16 @@ abstract class AbstractActionController extends ZendAbstractActionController {
                 }
             }
         }
+        
+        /**
+         * Define Link de Scripts JS na página
+         */
+        if (!empty($this->headJsLink)) {
+            $headJsLink = $viewHelperManager->get('headScript');
+            foreach ($this->headJsLink as $key => $value) {
+                $headJsLink()->appendFile($value['url'], $value['type'], $value['attrs'])->setSeparator(PHP_EOL);
+            }
+        }
 
         /**
          * Define Estilo CSS na página
@@ -501,16 +511,6 @@ abstract class AbstractActionController extends ZendAbstractActionController {
             $headJsScript = $viewHelperManager->get('headScript');
             foreach ($this->headJsScript as $key => $value) {
                 $headJsScript()->appendScript($value['script'], $value['type'], $value['conditional'])->setSeparator(PHP_EOL);
-            }
-        }
-
-        /**
-         * Define Link de Scripts JS na página
-         */
-        if (!empty($this->headJsLink)) {
-            $headJsLink = $viewHelperManager->get('headScript');
-            foreach ($this->headJsLink as $key => $value) {
-                $headJsLink()->appendFile($value['url'], $value['type'], $value['attrs'])->setSeparator(PHP_EOL);
             }
         }
 
