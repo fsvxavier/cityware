@@ -1,4 +1,4 @@
-linx
+Cityware
 ====
 
-ZF2 Linx Library
+ZF2 Cityware Free Library
