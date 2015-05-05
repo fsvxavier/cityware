@@ -137,19 +137,18 @@ class Module {
         $module = $route->getParam('module', strtolower(__NAMESPACE__));
         $controller = $route->getParam('__CONTROLLER__');
         $action = $route->getParam('action');
-       
-        
-        /* define module name, controller name, action name */
-        define('MODULE_NAME', strtolower($module));
-        define('CONTROLLER_NAME', strtolower($controller));
-        define('ACTION_NAME', strtolower($action));
-        
-        (!defined('LANGUAGE')) ? define('LANGUAGE', $route->getParam('language', 'br')) : null;
 
-        (!defined('MODULE_VIEW')) ? define('MODULE_VIEW', MODULES_PATH . ucfirst($module) . DS . 'view' . DS . strtolower($module) . DS) : null;
-        (!defined('MODULE_INI')) ? define('MODULE_INI', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'ini' . DS) : null;
-        (!defined('MODULE_TRANSLATE')) ? define('MODULE_TRANSLATE', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'translate' . DS) : null;
-        (!defined('MODULE_CONTROLLER')) ? define('MODULE_CONTROLLER', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'Controller' . DS) : null;
+        /* define module name, controller name, action name */
+        defined('MODULE_NAME') || define('MODULE_NAME', strtolower($module));
+        defined('CONTROLLER_NAME') || define('CONTROLLER_NAME', strtolower($controller));
+        defined('ACTION_NAME') || define('ACTION_NAME', strtolower($action));
+        
+        defined('LANGUAGE') || define('LANGUAGE', $route->getParam('language', 'br'));
+
+        defined('MODULE_VIEW') || define('MODULE_VIEW', MODULES_PATH . ucfirst($module) . DS . 'view' . DS . strtolower($module) . DS);
+        defined('MODULE_INI') || define('MODULE_INI', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'ini' . DS);
+        defined('MODULE_TRANSLATE') || define('MODULE_TRANSLATE', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'translate' . DS);
+        defined('MODULE_CONTROLLER') || define('MODULE_CONTROLLER', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'Controller' . DS);
 
         ServiceLocatorFactory::setInstance($e->getApplication()->getServiceManager());
     }
