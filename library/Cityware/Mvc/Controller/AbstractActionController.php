@@ -108,11 +108,18 @@ abstract class AbstractActionController extends ZendAbstractActionController {
     /**
      * Renderiza o template e retorna o html processado
      * @param string $templateName
+     * @param array $variables
      * @return string
      */
-    public function render($templateName) {
+    public function render($templateName, array $variables = null) {
         $viewModel = $this->getViewModel();
         $viewModel->setTemplate($templateName); // caminho para o template que será renderizado
+        
+        if($variables != null and is_array($variables)){
+            foreach ($variables as $key => $value) {
+                $viewModel->setVariable($key, $value);
+            }
+        }
         $renderer = $this->getServiceLocator()->get('ViewRenderer');
         return $renderer->render($viewModel);
     }
