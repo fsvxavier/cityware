@@ -41,6 +41,6 @@
             "Cityware\\": "library/Cityware/"
         }
     },
-	"minimum-stability": "stable",
+	"minimum-stability": "dev",
 	"prefer-stable": true
 }
