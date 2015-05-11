@@ -22,7 +22,7 @@ abstract class HighchartsAbstract
      *
      * @return string The javascript code
      */
-    abstract public function render($varName = null, $callback = null);
+    abstract public function render($varName, $callback = null);
 
     /**
      * Global options that don't apply to each chart like lang and global

@@ -209,7 +209,7 @@ final class Date {
         $year1 = date('Y', $time1);
         $year2 = date('Y', $time2);
         $years = range($year1, $year2);
-
+        $months = Array();
         foreach ($years as $year) {
             $months[$year] = array();
             while ($time1 < $time2) {
@@ -359,6 +359,7 @@ final class Date {
      * @return string
      */
     public static function extensionMonth($month) {
+        $mes = null;
         switch ($month) {
             case '01':
             case 1:
@@ -407,6 +408,67 @@ final class Date {
             case '12':
             case 12:
                 $mes = "Dezembro";
+                break;
+        }
+
+        return $mes;
+    }
+    
+    /**
+     * Retorna o mês por extenso em formato reduzido
+     * @param  integer $month
+     * @return string
+     */
+    public static function extensionShortMonth($month) {
+        $mes = null;
+        switch ($month) {
+            case '01':
+            case 1:
+                $mes = "Jan";
+                break;
+            case '02':
+            case 2:
+                $mes = "Fev";
+                break;
+            case '03':
+            case 3:
+                $mes = "Mar";
+                break;
+            case '04':
+            case 4:
+                $mes = "Abr";
+                break;
+            case '05':
+            case 5:
+                $mes = "Mai";
+                break;
+            case '06':
+            case 6:
+                $mes = "Jun";
+                break;
+            case '07':
+            case 7:
+                $mes = "Jul";
+                break;
+            case '08':
+            case 8:
+                $mes = "Ago";
+                break;
+            case '09':
+            case 9:
+                $mes = "Set";
+                break;
+            case '10':
+            case 10:
+                $mes = "Out";
+                break;
+            case '11':
+            case 11:
+                $mes = "Nov";
+                break;
+            case '12':
+            case 12:
+                $mes = "Dez";
                 break;
         }
 

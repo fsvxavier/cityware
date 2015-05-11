@@ -175,7 +175,11 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
                         self::$varSqlSelectFromColumns[] = $column;
                     }
                 } else {
-                    self::$varSqlSelectFromColumns[] = $column;
+                    if (!empty($alias)) {
+                        self::$varSqlSelectFromColumns[$alias] = $column;
+                    } else {
+                        self::$varSqlSelectFromColumns[] = $column;
+                    }
                 }
             }
         }

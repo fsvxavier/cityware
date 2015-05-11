@@ -22,7 +22,7 @@ abstract class AbstractActionController extends ZendAbstractActionController {
             $headJsLink = Array(), $metaName = Array(), $metaProperty = Array(), $metaHttpEquiv = Array();
     private $viewModel = null, $doctype, $contentType, $contentLang, $favicon, $sessionAdapter, $globalConfig, $image;
 
-    public $globalRoute;
+    public $globalRoute, $module, $controller, $action;
 
 
     public function __construct() {
@@ -30,9 +30,9 @@ abstract class AbstractActionController extends ZendAbstractActionController {
         $this->getViewModel();
         $this->globalRoute = $this->getSessionAdapter('globalRoute');
         
-        $module = $this->sessionAdapter->moduleName;
-        $controller = $this->sessionAdapter->controllerName;
-        $action = $this->sessionAdapter->actionName;
+        $this->module = $this->sessionAdapter->moduleName;
+        $this->controller = $this->sessionAdapter->controllerName;
+        $this->action = $this->sessionAdapter->actionName;
 
         /* Acesso o arquivo de configuração global */
         $this->globalConfig = \Zend\Config\Factory::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
@@ -40,16 +40,16 @@ abstract class AbstractActionController extends ZendAbstractActionController {
         //$this->image = $this->globalConfig['image'];
 
         $this->assign('linkDefault', LINK_DEFAULT);
-        $this->assign('linkModule', LINK_DEFAULT . $module . '/');
-        $this->assign('linkController', LINK_DEFAULT . $module . '/' . strtolower($controller));
-        $this->assign('linkAction', LINK_DEFAULT . $module . '/' . strtolower($controller) . '/' . strtolower($action));
+        $this->assign('linkModule', LINK_DEFAULT . $this->module . '/');
+        $this->assign('linkController', LINK_DEFAULT . $this->module . '/' . strtolower($this->controller));
+        $this->assign('linkAction', LINK_DEFAULT . $this->module . '/' . strtolower($this->controller) . '/' . strtolower($this->action));
         $this->assign('urlDefault', URL_DEFAULT);
         $this->assign('urlUpload', URL_UPLOAD);
         $this->assign('urlStatic', URL_STATIC);
         $this->assign('publicPath', PUBLIC_PATH);
-        $this->assign('baseModule', $module);
-        $this->assign('baseController', $controller);
-        $this->assign('baseAction', $action);
+        $this->assign('baseModule', $this->module);
+        $this->assign('baseController', $this->controller);
+        $this->assign('baseAction', $this->action);
         $this->assign('langDefault', $this->sessionAdapter->language);
 
         /* Tratamento das variáveis padrões de modulo, controlador e action */

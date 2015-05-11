@@ -54,10 +54,8 @@ abstract class Factory
         switch (strtolower($adapter)) {
             case 'highcharts':
                 return new Adapter\Highchart();
-                break;
             default:
                 throw new \Cityware\Exception\InvalidArgumentException('Adaptador não definico');
-                break;
         }
     }
 

@@ -39,13 +39,13 @@ class GetParam extends AbstractPlugin {
                 $params[$name] = $this->getEvent()->getRequest()->getFiles($name, $default);
                 break;
             default:
-                // router parameter
-                if ($this->getEvent()->getRouteMatch()->getParam($name, $default)) {
-                    $params[$name] = $this->getEvent()->getRouteMatch()->getParam($name, $default);
-                }
                 // query parameter
                 if ($this->getEvent()->getRequest()->getQuery($name, $default)) {
                     $params[$name] = $this->getEvent()->getRequest()->getQuery($name, $default);
+                }
+                // router parameter
+                if ($this->getEvent()->getRouteMatch()->getParam($name, $default)) {
+                    $params[$name] = $this->getEvent()->getRouteMatch()->getParam($name, $default);
                 }
                 // post parameter
                 if ($this->getEvent()->getRequest()->getPost($name, $default)) {

@@ -33,15 +33,42 @@ class DateOperations {
         return $this;
     }
     
+    /**
+     * 
+     * @return type
+     */
     public function parseDate() {
         return \date_parse($this->format());
     }
     
+    /**
+     * 
+     * @param type $modify
+     * @return type
+     */
     public function dateModify($modify) {
         $modified = (array)$this->dateTime->modify($modify);
         $date = explode(' ', $modified['date']);
         
         return $this->setDate($date[0])->parseDate();
+    }
+    
+    /**
+     * Pega o primeiro dia do mês corrente
+     * @return \Cityware\Format\DateOperations
+     */
+    public function firstDayOfThisMonth() {
+        $this->dateTime->modify('first day of this month');
+        return $this;
+    }
+    
+    /**
+     * Pega o ultimo dia do mês corrente
+     * @return \Cityware\Format\DateOperations
+     */
+    public function lastDayOfThisMonth() {
+        $this->dateTime->modify('last day of this month');
+        return $this;
     }
 
     /**
