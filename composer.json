@@ -38,7 +38,7 @@
     ],
     "autoload": {
         "psr-0": {
-            "Cityware\\": "library/Cityware/"
+            "Cityware\\": "library/"
         }
     },
 	"minimum-stability": "dev",
