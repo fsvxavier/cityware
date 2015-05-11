@@ -9,9 +9,18 @@
         "zf2",
         "library"
     ],
+	"require-dev": {
+        "phpunit/PHPUnit": "~4.6",
+        "phpunit/phpcov": "~2.0"
+    },
     "require": {
         "php": ">=5.3.3",
-        "zendframework/zendframework": "2.4.*"
+        "zendframework/zendframework": "2.4.*"		
+    },
+	"suggest": {
+        "zendframework/zendpdf": "ZendPdf for creating PDF representations of barcodes",
+		"twitter/bootstrap": "3.3.*@dev",
+		"neilime/zf2-twb-bundle": "1.0.*@dev"
     },
 	"repositories": [
         {
