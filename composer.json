@@ -15,7 +15,7 @@
     },
     "require": {
         "php": ">=5.3.3",
-        "zendframework/zendframework": "2.4.*"		
+        "zendframework/zendframework": "~2.3"
     },
 	"suggest": {
         "zendframework/zendpdf": "ZendPdf for creating PDF representations of barcodes",
