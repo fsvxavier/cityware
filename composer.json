@@ -2,7 +2,8 @@
     "name": "fsvxavier/cityware",
     "description": "ZF2 Cityware Library",
     "type": "library",
-    "version": "1.0.0",
+    "version": "1.2.0",
+	"license": "BSD-3-Clause",
     "keywords": [
         "framework",
         "zf2",
@@ -15,12 +16,12 @@
 	"repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/fsvxavier/cityware"
+            "url": "https://github.com/fsvxavier/cityware.git"
         }
     ],
     "autoload": {
         "psr-0": {
-            "Cityware\\": "library/"
+            "Cityware\\": "library/Cityware/"
         }
     }
 }
