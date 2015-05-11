@@ -11,6 +11,8 @@ use Zend\InputFilter\Factory as ZendInputFilterFactory;
 use Zend\Form\Form as ZendForm;
 use Zend\Validator\ValidatorChain as ZendValidatorChain;
 use Zend\Validator\AbstractValidator;
+use Zend\Session\Container as SessionContainer;
+
 
 class ZendAdapter extends ZendForm implements AdapterInterface {
 
@@ -18,6 +20,7 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
     private $urlAction, $translator, $moduleName, $controllerName, $actionName, $editFlag = false;
     private $aOptions = Array(), $aAttributes = Array(), $selectOptions = Array();
     private $aParams = Array(), $populateParams = Array(), $selectExternalOptions = Array();
+    private static $aSession = Array();
 
     public function getEditFlag() {
         return $this->editFlag;
@@ -123,7 +126,7 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
      * @return array
      */
     public function getConfigForm() {
-        $config = ZendConfigFile::fromFile(MODULE_INI . $this->controllerName . DS . $this->getNameIniForm() . '.ini');
+        $config = ZendConfigFile::fromFile(self::$aSession['moduleIni'] . $this->controllerName . DS . $this->getNameIniForm() . '.ini');
         $this->formDefaultConfig = $config['formconfig']['form'];
         $this->formFiledsConfig = $config['formfieldsconfig'];
         $this->formButtonsConfig = $config['formbuttonconfig'];
@@ -164,6 +167,9 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
      */
     public function __construct($name = null, $options = array()) {
         parent::__construct($name, $options);
+        
+        $sessionRoute = new SessionContainer('globalRoute');
+        self::$aSession = $sessionRoute->getArrayCopy();
     }
 
     /**
@@ -176,9 +182,9 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
         $translator = new MvcTranslator(new Translator());
 
         //Add the translation file. Here we are using the Portuguese-Brazilian translation
-        $translator->addTranslationFile('PhpArray', MODULE_TRANSLATE . $translator->getLocale() . DS . $this->controllerName . DS . $this->getNameIniForm() . '.php', 'default', $translator->getLocale());
-        $translator->addTranslationFile('PhpArray', MODULE_TRANSLATE . $translator->getLocale() . DS . "Zend_Validate.php", 'default', $translator->getLocale());
-        $translator->addTranslationFile('PhpArray', MODULE_TRANSLATE . $translator->getLocale() . DS . "Zend_Captcha.php", 'default', $translator->getLocale());
+        $translator->addTranslationFile('PhpArray', self::$aSession['moduleTranslate'] . $translator->getLocale() . DS . $this->controllerName . DS . $this->getNameIniForm() . '.php', 'default', $translator->getLocale());
+        $translator->addTranslationFile('PhpArray', self::$aSession['moduleTranslate'] . $translator->getLocale() . DS . "Zend_Validate.php", 'default', $translator->getLocale());
+        $translator->addTranslationFile('PhpArray', self::$aSession['moduleTranslate'] . $translator->getLocale() . DS . "Zend_Captcha.php", 'default', $translator->getLocale());
 
         //Set the default translator for validators
         AbstractValidator::setDefaultTranslator($translator);

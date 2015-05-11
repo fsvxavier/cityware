@@ -36,7 +36,8 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
             $varSqlOffset = "",
             $varSqlSchema = null,
             $varCacheKey = null,
-            $varSqlDistinct = false;
+            $varSqlDistinct = false,
+            $aSession = Array();
 
     /**
      * Conexão padrão
@@ -44,6 +45,8 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
      */
     public function getAdapter() {
 
+        $sessionRoute = new SessionContainer('globalRoute');
+        self::$aSession = $sessionRoute->getArrayCopy();
 
         self::$resultSetPrototype = new ResultSet();
         $config = ZendConfigFile::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
@@ -1439,7 +1442,7 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
         /* Obtem o indece da sessão */
         $searchReplace = Array(':', '/', '\\', '_', '-', '.');
         $urlSession = str_replace($searchReplace, '', URL_DEFAULT);
-        $indexSession = strtoupper(MODULE_NAME) . '_' . $urlSession;
+        $indexSession = strtoupper(self::$aSession['moduleName']) . '_' . $urlSession;
 
         $sessionNamespace = new SessionContainer($indexSession);
         $aSession = $sessionNamespace->getArrayCopy();
@@ -1454,9 +1457,9 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
             unset($aSession['menu']);
         }
 
-        $this->insert('des_modulo', MODULE_NAME);
-        $this->insert('des_acao', ACTION_NAME);
-        $this->insert('des_controlador', CONTROLLER_NAME);
+        $this->insert('des_modulo', self::$aSession['moduleName']);
+        $this->insert('des_acao', self::$aSession['actionName']);
+        $this->insert('des_controlador', self::$aSession['controllerName']);
 
         $this->insert('des_session', json_encode($aSession));
         $this->insert('des_queryaction', strtoupper($queryAction));

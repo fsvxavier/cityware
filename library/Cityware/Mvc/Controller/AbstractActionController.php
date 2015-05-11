@@ -22,9 +22,17 @@ abstract class AbstractActionController extends ZendAbstractActionController {
             $headJsLink = Array(), $metaName = Array(), $metaProperty = Array(), $metaHttpEquiv = Array();
     private $viewModel = null, $doctype, $contentType, $contentLang, $favicon, $sessionAdapter, $globalConfig, $image;
 
+    public $globalRoute;
+
+
     public function __construct() {
 
         $this->getViewModel();
+        $this->globalRoute = $this->getSessionAdapter('globalRoute');
+        
+        $module = $this->sessionAdapter->moduleName;
+        $controller = $this->sessionAdapter->controllerName;
+        $action = $this->sessionAdapter->actionName;
 
         /* Acesso o arquivo de configuração global */
         $this->globalConfig = \Zend\Config\Factory::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
@@ -32,17 +40,17 @@ abstract class AbstractActionController extends ZendAbstractActionController {
         //$this->image = $this->globalConfig['image'];
 
         $this->assign('linkDefault', LINK_DEFAULT);
-        $this->assign('linkModule', LINK_DEFAULT . MODULE_NAME . '/');
-        $this->assign('linkController', LINK_DEFAULT . MODULE_NAME . '/' . strtolower(CONTROLLER_NAME));
-        $this->assign('linkAction', LINK_DEFAULT . MODULE_NAME . '/' . strtolower(CONTROLLER_NAME) . '/' . strtolower(ACTION_NAME));
+        $this->assign('linkModule', LINK_DEFAULT . $module . '/');
+        $this->assign('linkController', LINK_DEFAULT . $module . '/' . strtolower($controller));
+        $this->assign('linkAction', LINK_DEFAULT . $module . '/' . strtolower($controller) . '/' . strtolower($action));
         $this->assign('urlDefault', URL_DEFAULT);
         $this->assign('urlUpload', URL_UPLOAD);
         $this->assign('urlStatic', URL_STATIC);
         $this->assign('publicPath', PUBLIC_PATH);
-        $this->assign('baseModule', MODULE_NAME);
-        $this->assign('baseController', CONTROLLER_NAME);
-        $this->assign('baseAction', ACTION_NAME);
-        $this->assign('langDefault', LANGUAGE);
+        $this->assign('baseModule', $module);
+        $this->assign('baseController', $controller);
+        $this->assign('baseAction', $action);
+        $this->assign('langDefault', $this->sessionAdapter->language);
 
         /* Tratamento das variáveis padrões de modulo, controlador e action */
         $eventManager = $this->getEventManager();

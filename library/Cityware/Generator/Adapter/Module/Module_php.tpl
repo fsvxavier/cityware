@@ -138,17 +138,18 @@ class Module {
         $controller = $route->getParam('__CONTROLLER__');
         $action = $route->getParam('action');
 
-        /* define module name, controller name, action name */
-        defined('MODULE_NAME') || define('MODULE_NAME', strtolower($module));
-        defined('CONTROLLER_NAME') || define('CONTROLLER_NAME', strtolower($controller));
-        defined('ACTION_NAME') || define('ACTION_NAME', strtolower($action));
-        
-        defined('LANGUAGE') || define('LANGUAGE', $route->getParam('language', 'br'));
+        $container = new \Zend\Session\Container('globalRoute');
 
-        defined('MODULE_VIEW') || define('MODULE_VIEW', MODULES_PATH . ucfirst($module) . DS . 'view' . DS . strtolower($module) . DS);
-        defined('MODULE_INI') || define('MODULE_INI', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'ini' . DS);
-        defined('MODULE_TRANSLATE') || define('MODULE_TRANSLATE', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'translate' . DS);
-        defined('MODULE_CONTROLLER') || define('MODULE_CONTROLLER', MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'Controller' . DS);
+        /* define module name, controller name, action name */
+        $container->moduleName = strtolower($module);
+        $container->controllerName = strtolower($controller);
+        $container->actionName = strtolower($action);
+
+        $container->language = $route->getParam('language', 'br');
+        $container->moduleView = MODULES_PATH . ucfirst($module) . DS . 'view' . DS . strtolower($module) . DS;
+        $container->moduleIni = MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'ini' . DS;
+        $container->moduleTranslate = MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'translate' . DS;
+        $container->moduleController = MODULES_PATH . ucfirst($module) . DS . 'src' . DS . ucfirst($module) . DS . 'Controller' . DS;
 
         ServiceLocatorFactory::setInstance($e->getApplication()->getServiceManager());
     }
