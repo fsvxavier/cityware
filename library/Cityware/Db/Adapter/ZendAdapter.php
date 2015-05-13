@@ -139,8 +139,13 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
             $column = ($isExpression) ? new Expression($columnTable) : $columnTable;
             $tableOrAliasTable = null;
         } elseif (preg_match('/(.+)\.(.+)/', $columnTable, $aColumn)) {
-            $column = $aColumn[2];
-            $tableOrAliasTable = $aColumn[1];
+            if($isExpression){
+                $column = new Expression($aColumn[0]);
+                $tableOrAliasTable = null;
+            } else {
+                $column = $aColumn[2];
+                $tableOrAliasTable = $aColumn[1];
+            }
         }
 
         if (!empty(self::$varSqlJoinUsing)) {

@@ -29,36 +29,6 @@ class Module {
         /* Acesso o arquivod de coniguração global */
         $config = \Zend\Config\Factory::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
 
-        /* Configura a inicialização de sessao */
-        if (isset($config['session'])) {
-            $sessionConfig = new SessionConfig();
-            $sessionConfig->setOptions($config['session']);
-
-            $sessionManager = new SessionManager($sessionConfig);
-            $sessionManager->start();
-
-            $container = new \Zend\Session\Container(SESSION_%moduleNameUpper%);
-            if (!isset($container->init)) {
-                $serviceManager = $e->getApplication()->getServiceManager();
-                $request = $serviceManager->get('Request');
-
-                $sessionManager->regenerateId(true);
-                $container->init = 1;
-                $container->remoteAddr = $request->getServer()->get('REMOTE_ADDR');
-                $container->httpUserAgent = $request->getServer()->get('HTTP_USER_AGENT');
-
-                $chain = $sessionManager->getValidatorChain();
-                $validatorUserAgent = new \Zend\Session\Validator\HttpUserAgent($container->httpUserAgent);
-                $chain->attach('session.validate', array($validatorUserAgent, 'isValid'));
-                $validatorAddr = new \Zend\Session\Validator\RemoteAddr($container->remoteAddr);
-                $chain->attach('session.validate', array($validatorAddr, 'isValid'));
-
-                $sessionManager->setValidatorChain($chain);
-            }
-
-            Container::setDefaultManager($sessionManager);
-        }
-
         /* Configuração do php.ini em tempo de execução */
         if (array_key_exists('php_settings', $config)) {
             $phpSettings = $config['php_settings'];
@@ -126,6 +96,45 @@ class Module {
             ),
         );
     }
+    
+    /**
+     * Configura a inicialização de sessao verificando se caso for realiza o reset em chamada de rota
+     * @param MvcEvent $e
+     */
+    public function onRouteSessionStart(MvcEvent $e) {
+        $config = \Zend\Config\Factory::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
+
+        /* Configura a inicialização de sessao */
+        if (isset($config['session'])) {
+            $sessionConfig = new SessionConfig();
+            $sessionConfig->setOptions($config['session']);
+            
+            $sessionStorage = new \Zend\Session\Storage\SessionArrayStorage();
+
+            $sessionManager = new SessionManager($sessionConfig, $sessionStorage);
+
+            $container = new Container(SESSION_%moduleNameUpper%, $sessionManager);
+            if (!isset($container->init)) {
+                $serviceManager = $e->getApplication()->getServiceManager();
+                $request = $serviceManager->get('Request');
+
+                $sessionManager->rememberMe(1800);
+                $sessionManager->regenerateId(true);
+                $container->init = 1;
+                $container->remoteAddr = $request->getServer()->get('REMOTE_ADDR');
+                $container->httpUserAgent = $request->getServer()->get('HTTP_USER_AGENT');
+
+                $chain = $sessionManager->getValidatorChain();
+                $validatorUserAgent = new \Zend\Session\Validator\HttpUserAgent($container->httpUserAgent);
+                $chain->attach('session.validate', array($validatorUserAgent, 'isValid'));
+                $validatorAddr = new \Zend\Session\Validator\RemoteAddr($container->remoteAddr);
+                $chain->attach('session.validate', array($validatorAddr, 'isValid'));
+
+                $sessionManager->setValidatorChain($chain);
+            }
+            $container->setDefaultManager($sessionManager);
+        }
+    }
 
     /**
      * Função de definição de variáveis estáticas defult do sistema
@@ -137,6 +146,8 @@ class Module {
         $module = $route->getParam('module', strtolower(__NAMESPACE__));
         $controller = $route->getParam('__CONTROLLER__');
         $action = $route->getParam('action');
+        
+        $this->onRouteSessionStart($e);
 
         $container = new \Zend\Session\Container('globalRoute');
 
