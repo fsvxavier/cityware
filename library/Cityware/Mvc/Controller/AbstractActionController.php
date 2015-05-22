@@ -189,8 +189,41 @@ abstract class AbstractActionController extends ZendAbstractActionController {
      */
     public function getSessionAdapter($name = 'Default') {
 
-        $sessionNamespace = new SessionContainer($name);
-        $sessionNamespace->setExpirationSeconds(3600);
+        if (!isset($_SESSION[$name])) {
+
+            $sessionConfig = new SessionConfig();
+            $sessionConfig->setOptions($this->globalConfig['session']);
+
+            $sessionStorage = new \Zend\Session\Storage\SessionArrayStorage();
+
+            $sessionManager = new SessionManager();
+            $sessionManager->rememberMe($this->globalConfig['session']['remember_me_seconds']);
+            $sessionManager->forgetMe();
+            $sessionManager->setConfig($sessionConfig);
+            $sessionManager->setStorage($sessionStorage);
+            $sessionNamespace = new SessionContainer($name, $sessionManager);
+            $sessionNamespace->setExpirationSeconds(3600);
+            if (!isset($sessionNamespace->init)) {
+
+                $request = new \Zend\Http\PhpEnvironment\Request();
+
+                $sessionNamespace->init = 1;
+                $sessionNamespace->remoteAddr = $request->getServer('REMOTE_ADDR');
+                $sessionNamespace->httpUserAgent = $request->getServer('HTTP_USER_AGENT');
+
+                $chain = $sessionManager->getValidatorChain();
+                $validatorUserAgent = new \Zend\Session\Validator\HttpUserAgent($sessionNamespace->httpUserAgent);
+                $chain->attach('session.validate', array($validatorUserAgent, 'isValid'));
+                $validatorAddr = new \Zend\Session\Validator\RemoteAddr($sessionNamespace->remoteAddr);
+                $chain->attach('session.validate', array($validatorAddr, 'isValid'));
+
+                $sessionManager->setValidatorChain($chain);
+            }
+            $sessionNamespace->setDefaultManager($sessionManager);
+        } else {
+            $sessionNamespace = new SessionContainer($name);
+            $sessionNamespace->setExpirationSeconds(3600);
+        }
         $this->sessionAdapter = $sessionNamespace;
 
         return $sessionNamespace;

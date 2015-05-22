@@ -360,7 +360,8 @@ class ZendAdapter extends ZendForm implements AdapterInterface {
                 if (isset($params['encrypted']) and ! empty($params['encrypted'])) {
                     if (strtolower($params['type']) == 'password' and strtolower($params['encrypted']) == 'true') {
                         if (isset($populateValues[$fieldName]) and ! empty($populateValues[$fieldName])) {
-                            $populateValues[$fieldName] = \Cityware\Security\Criptography::decrypt($populateValues[$fieldName]);
+                            $crypt = new \Cityware\Security\Crypt();
+                            $populateValues[$fieldName] = $crypt->decrypt($populateValues[$fieldName]);
                         }
                     }
                 }
