@@ -27,15 +27,17 @@ abstract class AbstractActionController extends ZendAbstractActionController {
 
     public function __construct() {
 
+        /* Acesso o arquivo de configuração global */
+        $this->globalConfig = \Zend\Config\Factory::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
+		
         $this->getViewModel();
-        $this->globalRoute = $this->getSessionAdapter('globalRoute');
+        
+		$this->globalRoute = $this->getSessionAdapter('globalRoute');
         
         $this->module = $this->sessionAdapter->moduleName;
         $this->controller = $this->sessionAdapter->controllerName;
         $this->action = $this->sessionAdapter->actionName;
 
-        /* Acesso o arquivo de configuração global */
-        $this->globalConfig = \Zend\Config\Factory::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
 
         //$this->image = $this->globalConfig['image'];
 
