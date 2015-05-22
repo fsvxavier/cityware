@@ -147,7 +147,7 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
                 $tableOrAliasTable = $aColumn[1];
             }
         }
-
+        
         if (!empty(self::$varSqlJoinUsing)) {
             /* Verifica se a coluna pertence a algum join */
             foreach (self::$varSqlJoinUsing as $valueTableJoin) {
@@ -162,7 +162,7 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
 
             /* Verifica se a coluna pertence a algum from */
             foreach (self::$varSqlFrom as $valueTableFrom) {
-                if ($valueTableFrom['tableName'] === $tableOrAliasTable OR ( isset($valueTableFrom['alias']) and $valueTableFrom['alias'] === $tableOrAliasTable)) {
+                if ($tableOrAliasTable === null OR $valueTableFrom['tableName'] === $tableOrAliasTable OR ( isset($valueTableFrom['alias']) and $valueTableFrom['alias'] === $tableOrAliasTable)) {
                     if (!empty($alias)) {
                         self::$varSqlSelectFromColumns[$alias] = $column;
                     } else {
@@ -173,7 +173,7 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
         } else {
             /* Verifica se a coluna pertence a algum from */
             foreach (self::$varSqlFrom as $valueTableFrom) {
-                if ($valueTableFrom['tableName'] === $tableOrAliasTable OR ( isset($valueTableFrom['alias']) and $valueTableFrom['alias'] === $tableOrAliasTable)) {
+                if ($tableOrAliasTable === null OR $valueTableFrom['tableName'] === $tableOrAliasTable OR ( isset($valueTableFrom['alias']) and $valueTableFrom['alias'] === $tableOrAliasTable)) {
                     if (!empty($alias)) {
                         self::$varSqlSelectFromColumns[$alias] = $column;
                     } else {

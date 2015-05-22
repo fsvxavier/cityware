@@ -9,6 +9,8 @@ namespace Cityware\Mvc\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController as ZendAbstractActionController;
 use Zend\Session\Container as SessionContainer;
+use Zend\Session\Config\SessionConfig;
+use Zend\Session\SessionManager;
 use Cityware\View\Model\ViewModel;
 
 /**
