@@ -119,7 +119,7 @@ class TableNew {
         
         $html .= '<th>' . self::$phpEOL
                 . '<button class="btn btn-success searchFrmButton" type="button">' . self::$phpEOL
-                . '<i class="glyphicon glyphicon-search"></i> Filtrar' . self::$phpEOL
+                . '<i class="fa fa-search"></i> Filtrar' . self::$phpEOL
                 . '</button>' . self::$phpEOL
                 . '</th>' . self::$phpEOL;
         $html .= '</tr>' . self::$phpEOL;

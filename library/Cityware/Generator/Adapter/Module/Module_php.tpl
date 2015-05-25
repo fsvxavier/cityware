@@ -34,8 +34,12 @@ class Module {
             $phpSettings = $config['php_settings'];
             if (is_array($phpSettings)) {
                 foreach ($phpSettings as $key => $value) {
-                    if (false === ini_set($key, $value)) {
-                        throw new \RuntimeException('Cannot set ini \'' . $key . '\' to \'' . $value);
+                    if ($key == 'locale') {
+                        setlocale(LC_ALL, $value);
+                    } else {
+                        if (false === ini_set($key, $value)) {
+                            throw new \RuntimeException('Cannot set ini \'' . $key . '\' to \'' . $value);
+                        }
                     }
                 }
             }

@@ -9,7 +9,7 @@ return array(
         'invokables' => array(
             'getParam' => 'Cityware\Mvc\Controller\Plugins\GetParam',
             'setParam' => 'Cityware\Mvc\Controller\Plugins\SetParam',
-            'getAllParams' => 'Cityware\Mvc\Controller\Plugins\GetAllParams',
+			'getAllParams' => 'Cityware\Mvc\Controller\Plugins\GetAllParams',
         )
     ),
     'global_variables' => array(
