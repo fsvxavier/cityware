@@ -19,8 +19,7 @@ use Exception;
  */
 class ZendAdapter extends AdapterAbstract implements AdapterInterface {
 
-    private $connAdapter = null, $varExecuteLog = false;
-    
+    private $connAdapter = Array(), $varExecuteLog = false, $aSession = Array();
     protected static $session, $varDebug, $varExplan, $serviceLocator, $resultSetPrototype;
     protected static $varSqlSelect = Array(),
             $varSqlSelectFromColumns = Array(),
@@ -38,8 +37,8 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
             $varSqlSchema = null,
             $varCacheKey = null,
             $varSqlDistinct = false,
-            $aSession = Array(),
-            $varConfigAdapter = null;
+            $varConfigAdapter = null,
+            $varStatusTransaction = false;
 
     /**
      * Conexão padrão
@@ -48,37 +47,33 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
     public function getAdapter($adapterName = null) {
 
         $sessionRoute = new SessionContainer('globalRoute');
-        self::$aSession = $sessionRoute->getArrayCopy();
+        $this->aSession = $sessionRoute->getArrayCopy();
 
         self::$resultSetPrototype = new ResultSet();
         $config = ZendConfigFile::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
 
-        $adapter = null;
-        if (!empty($this->connAdapter) and $this->connAdapter->getDriver()->getConnection()->isConnected()) {
-            return $this->connAdapter;
+        if (empty($adapterName)) {
+            foreach ($config['db']['adapters'] as $keyAdapter => $valueAdapter) {
+                if ($valueAdapter['default']) {
+                    $adapterName = $keyAdapter;
+                }
+            }
+        }
+
+        if (isset($this->connAdapter[$adapterName]) and ! empty($this->connAdapter[$adapterName]) and $this->connAdapter[$adapterName]->getDriver()->getConnection()->isConnected()) {
+            return $this->connAdapter[$adapterName];
         } else {
             /* Verifica se tem multiplos adaptadores de conexão e instancia os mesmos */
             if (isset($config['db']['adapters']) and ! empty($config['db']['adapters'])) {
                 foreach ($config['db']['adapters'] as $key => $value) {
                     ${$key} = new \Zend\Db\Adapter\Adapter($value);
                     ${$key}->getDriver()->getConnection()->connect();
-                    if (empty($adapterName)) {
-                        if ($value['default']) {
-                            $this->connAdapter = $adapter = ${$key};
-                        }
-                    } else {
-                        if($key == $adapterName){
-                            $this->connAdapter = $adapter = ${$key};
-                        }
-                    }
+                    $this->connAdapter[$key] = ${$key};
                 }
             } else {
-                /* Caso tenha apenas um adaptador de conexão instancia o mesmo */
-                $adapter = new \Zend\Db\Adapter\Adapter($config['db']);
-                $adapter->getDriver()->getConnection()->connect();
-                $this->connAdapter = $adapter;
+                throw new \Exception('Dados de configuração não encontrados!');
             }
-            return $adapter;
+            return $this->connAdapter[$adapterName];
         }
     }
 
@@ -99,7 +94,12 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
         self::$varDebug = $debug;
         return $this;
     }
-    
+
+    public function setLog($log = false) {
+        $this->varExecuteLog = $log;
+        return $this;
+    }
+
     /**
      * Função que define o adaptador de conexção a ser utilizado
      * @param string $adapterName
@@ -368,29 +368,107 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
     }
 
     /**
-     * Função utilizada para definir chamada de commit e rollback
+     * Função utilizada para definir chamada de TRANSACTION
+     * @param string $adapterName
      * @return \Cityware\Db\Adapter\ZendAdapter
      */
-    public function transaction() {
-        $this->getAdapter(self::$varConfigAdapter)->getDriver()->getConnection()->beginTransaction();
+    public function transaction($adapterName = null) {
+        self::$varStatusTransaction = true;
+        if (!empty($adapterName)) {
+            $this->getAdapter($adapterName);
+            $this->executeSqlQuery('BEGIN TRANSACTION;');
+        } else {
+            $this->getAdapter(self::$varConfigAdapter);
+            $this->executeSqlQuery('BEGIN TRANSACTION;');
+        }
         return $this;
     }
 
     /**
-     * Função de definição de commit
+     * Função de execução de COMMIT
+     * @param string $adapterName
      * @return \Cityware\Db\Adapter\ZendAdapter
      */
-    public function commit() {
-        $this->getAdapter(self::$varConfigAdapter)->getDriver()->getConnection()->commit();
+    public function commit($adapterName = null) {
+        self::$varStatusTransaction = false;
+        if (!empty($adapterName)) {
+            $this->getAdapter($adapterName);
+            $this->executeSqlQuery('COMMIT;');
+        } else {
+            $this->getAdapter(self::$varConfigAdapter);
+            $this->executeSqlQuery('COMMIT;');
+        }
         return $this;
     }
 
     /**
-     * Função de definição de Rollback
+     * Função de execução de ROLLBACK
+     * @param string $adapterName
      * @return \Cityware\Db\Adapter\ZendAdapter
      */
-    public function rollback() {
-        $this->getAdapter(self::$varConfigAdapter)->getDriver()->getConnection()->rollBack();
+    public function rollback($adapterName = null) {
+        self::$varStatusTransaction = false;
+        if (!empty($adapterName)) {
+            $this->getAdapter($adapterName);
+            $this->executeSqlQuery('ROLLBACK;');
+        } else {
+            $this->getAdapter($adapterName);
+            $this->executeSqlQuery('ROLLBACK;');
+        }
+        return $this;
+    }
+    
+    /**
+     * Função utilizada para definir chamada de TRANSACTION identificada
+     * @param string $transactionId
+     * @param string $adapterName
+     * @return \Cityware\Db\Adapter\ZendAdapter
+     */
+    public function prepareTransaction($transactionId, $adapterName = null) {
+        self::$varStatusTransaction = true;
+        if (!empty($adapterName)) {
+            $this->getAdapter($adapterName);
+            $this->executeSqlQuery("PREPARE TRANSACTION '{$transactionId}';");
+        } else {
+            $this->getAdapter(self::$varConfigAdapter);
+            $this->executeSqlQuery("PREPARE TRANSACTION '{$transactionId}';");
+        }
+        return $this;
+    }
+
+    /**
+     * Função de execução de COMMIT de transação identificada
+     * @param string $transactionId
+     * @param string $adapterName
+     * @return \Cityware\Db\Adapter\ZendAdapter
+     */
+    public function preparedCommit($transactionId, $adapterName = null) {
+        self::$varStatusTransaction = false;
+        if (!empty($adapterName)) {
+            $this->getAdapter($adapterName);
+            $this->executeSqlQuery("COMMIT PREPARED '{$transactionId}';");
+        } else {
+            $this->getAdapter(self::$varConfigAdapter);
+            $this->executeSqlQuery("COMMIT PREPARED '{$transactionId}';");
+        }
+        return $this;
+    }
+
+    /**
+     * Função de execução de ROLLBACK de transação identificada
+     * @param string $transactionId
+     * @param string $adapterName
+     * @return \Cityware\Db\Adapter\ZendAdapter
+     */
+    public function preparedRollback($transactionId, $adapterName = null) {
+        self::$varStatusTransaction = false;
+        if (!empty($adapterName)) {
+            $this->getAdapter($adapterName);
+            $this->executeSqlQuery("ROLLBACK PREPARED '{$transactionId}';");
+        } else {
+            $this->getAdapter($adapterName);
+            $this->executeSqlQuery("ROLLBACK PREPARED '{$transactionId}';");
+        }
         return $this;
     }
 
@@ -399,7 +477,9 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
      * @return \Cityware\Db\Adapter\ZendAdapter
      */
     public function closeConnection() {
-        $this->getAdapter(self::$varConfigAdapter)->getDriver()->getConnection()->disconnect();
+        if (!self::$varStatusTransaction) {
+            $this->getAdapter(self::$varConfigAdapter)->getDriver()->getConnection()->disconnect();
+        }
         return $this;
     }
 
@@ -595,7 +675,7 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
                         $retorno = self::$resultSetPrototype->initialize($results)->toArray();
                     }
                 }
-            } catch (\Zend\Db\Exception $exc) {
+            } catch (\Exception $exc) {
                 $this->closeConnection();
                 $retorno = false;
                 throw new \Exception('Nao foi possivel executar o comando SELECT no banco de dados!<br /><br />' . $exc->getMessage(), 500);
@@ -604,6 +684,169 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
             $this->closeConnection();
             $retorno = false;
             throw new \Exception('O comando SELECT nao foi definido corretamente!');
+        }
+        $this->closeConnection();
+        self::freeMemory();
+
+        return $retorno;
+    }
+
+    /**
+     * FUNCAO QUE MONTA O COMANDO SUB-SELECT NO BANCO DE DADOS E RETORNA A STRING
+     * @return mixed
+     * @throws Exception
+     */
+    public function executeSubSelectQuery() {
+
+        /*
+         * VERIFICA SE O PARAMETRO FROM DA QUERY FOI DEFINIDO
+         */
+        if (!empty(self::$varSqlFrom[0]) and count(self::$varSqlFrom) > 0) {
+
+            /*
+             * INICIALIZA A QUERY PELO ZEND_DB
+             */
+            $sql = new Sql($this->getAdapter(self::$varConfigAdapter));
+            $select = $sql->select();
+
+            //$sql->getSqlPlatform();
+
+            /*
+             * DEFINE O PARAMETRO FROM DA QUERY
+             */
+            foreach (self::$varSqlFrom as $key => $value) {
+                if (isset($value['alias']) and ! empty($value['alias'])) {
+                    $select->from(Array($value['alias'] => $value['table']));
+                } else {
+                    $select->from($value['table']);
+                }
+            }
+
+            /*
+             * VERIFICA E DEFINE O PARAMETRO SELECT DA QUERY
+             */
+            if (!empty(self::$varSqlSelect) and count(self::$varSqlSelect) > 0) {
+                foreach (self::$varSqlSelect as $key => $value) {
+                    if (isset(self::$varSqlSelect[$key]['alias']) and ! empty(self::$varSqlSelect[$key]['alias'])) {
+                        $this->prepareSelectColumns(self::$varSqlSelect[$key]['col'], self::$varSqlSelect[$key]['alias'], self::$varSqlSelect[$key]['expression']);
+                    } else {
+                        $this->prepareSelectColumns(self::$varSqlSelect[$key]['col'], null, self::$varSqlSelect[$key]['expression']);
+                    }
+                }
+                $select->columns(self::$varSqlSelectFromColumns);
+            } else {
+                $select->columns(Array('*'));
+            }
+
+            /*
+             * VERIFICA E DEFINE O PARAMETRO DISTINCT DA QUERY
+             */
+            if (self::$varSqlDistinct) {
+                $select->quantifier('DISTINCT');
+            }
+
+            /*
+             * VERIFICA E DEFINE O PARAMETRO INNERJOING DA QUERY
+             */
+            if (!empty(self::$varSqlJoinUsing)) {
+                foreach (self::$varSqlJoinUsing as $key => $value) {
+                    if (!empty($value['alias'])) {
+                        $tableJoin = Array($value['alias'] => $value['table']);
+                        $tableName = $value['table']->getTable();
+                    } else {
+                        $tableJoin = $value['table'];
+                        $tableName = $value['table']->getTable();
+                    }
+
+                    $selectJoin = (isset(self::$varSqlSelectJoinColumns[$tableName]) and ! empty(self::$varSqlSelectJoinColumns[$tableName])) ? self::$varSqlSelectJoinColumns[$tableName] : Array();
+
+                    switch (strtolower($value['type'])) {
+                        case 'innerjoin':
+                            $select->join($tableJoin, $value['condition'], $selectJoin, 'inner');
+                            break;
+                        case 'leftjoin':
+                            $select->join($tableJoin, $value['condition'], $selectJoin, 'left');
+                            break;
+                        case 'rightjoin':
+                            $select->join($tableJoin, $value['condition'], $selectJoin, 'right');
+                            break;
+                        case 'outerjoin':
+                            $select->join($tableJoin, $value['condition'], $selectJoin, 'outer');
+                            break;
+                        default:
+                            $select->join($tableJoin, $value['condition'], $selectJoin, 'inner');
+                            break;
+                    }
+                }
+            }
+
+            /*
+             * VERIFICA E DEFINE O PARAMETRO WHERE DA QUERY
+             */
+            if (!empty(self::$varSqlWhere) and count(self::$varSqlWhere) > 0) {
+                foreach (self::$varSqlWhere as $key => $value) {
+                    $select->where(self::$varSqlWhere[$key]['where'], self::$varSqlWhere[$key]['condition']);
+                }
+            }
+
+            /*
+             * VERIFICA E DEFINE O PARAMETRO GROUPBY DA QUERY
+             */
+            if (!empty(self::$varSqlGroupBy) and count(self::$varSqlGroupBy) > 0) {
+                $select->group(self::$varSqlGroupBy);
+            }
+
+            /*
+             * VERIFICA E DEFINE O PARAMETRO HAVING DA QUERY
+             */
+            if (!empty(self::$varSqlHaving) and count(self::$varSqlHaving) > 0) {
+                foreach (self::$varSqlHaving as $key => $value) {
+                    $select->having(self::$varSqlHaving[$key]['where'], self::$varSqlHaving[$key]['condition']);
+                }
+            }
+
+            /*
+             * VERIFICA E DEFINE O PARAMETRO ORDERBY DA QUERY
+             */
+            if (!empty(self::$varSqlOrderBy)) {
+                $select->order(self::$varSqlOrderBy);
+            }
+
+            /*
+             * VERIFICA E DEFINE O PARAMETRO LIMIT DA QUERY
+             */
+            if (!empty(self::$varSqlLimit)) {
+                /*
+                 * VERIFICA E DEFINE O PARAMETRO OFFSET (COMPLEMENTA O LIMIT) DA QUERY
+                 */
+                if (!empty(self::$varSqlOffset)) {
+                    $select->limit(self::$varSqlLimit);
+                    $select->offset(self::$varSqlOffset);
+                } else {
+                    $select->limit(self::$varSqlLimit);
+                }
+            }
+
+            try {
+                /*
+                 * CASO O DEBUG ESTEJA ATIVO IMPRIME A QUERY (COMANDO) NA TELA
+                 */
+                if (self::$varDebug) {
+                    $this->debugQuery($select->getSqlString());
+                } elseif (self::$varExplan) {
+                    $this->explainQuery($select->getSqlString());
+                } else {
+                    $retorno = str_replace('"', '', $select->getSqlString());
+                }
+            } catch (\Zend\Db\Exception $exc) {
+                $this->closeConnection();
+                $retorno = false;
+                throw new \Exception('Nao foi possivel executar o comando SUB-SELECT no banco de dados!<br /><br />' . $exc->getMessage(), 500);
+            }
+        } else {
+            $this->closeConnection();
+            $retorno = false;
+            throw new \Exception('O comando SUB-SELECT nao foi definido corretamente!');
         }
         $this->closeConnection();
         self::freeMemory();
@@ -787,7 +1030,7 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
     /**
      * FUNCAO QUE EXECUTA UM COMANDO QUALQUER NO BANCO DE DADOS OU BUSCA NO CACHE GRAVADO
      * ESTA FUNCAO MASCARA O USO DO ZEND_DB NO SISTEMA
-     * @param  string  $varSqlQuery
+     * @param  string  $sqlQuery
      * @param  boolean $activationPaginator
      * @param  integer $pageNumber
      * @param  integer $limitPerPage
@@ -858,12 +1101,11 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
                 /*
                  * CASO O COMANDO EXECUTADO SEJA DO TIPO SELECT RETORNA UM ARRAY COM O RESULTADO DA CONSULTA
                  */
-                $rowSet = $query->execute();
-
                 if ($typeSelect === true) {
                     /**
                      * VERIFICA SE HÁ CACHE GRAVADO E NAO EXPIRADO
                      */
+                    $rowSet = $query->execute();
                     if ($activationPaginator) {
                         $retorno = Array();
                         $adapter = new \Zend\Paginator\Adapter\Iterator($rowSet, $sql);
@@ -995,6 +1237,7 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
              * INICIALIZA A QUERY PELO ZEND_DB
              */
             $sql = new Sql($this->getAdapter(self::$varConfigAdapter));
+
             $insert = $sql->insert();
 
             /*
@@ -1417,7 +1660,7 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
         $metadata = new zendMetadata($this->getAdapter(self::$varConfigAdapter));
         $tableColumns = $metadata->getConstraints($table, $schema);
         $returnPrimaryColumn = null;
-        foreach ($tableColumns as $key => $value) {
+        foreach ($tableColumns as $value) {
             if ($value->getType() == 'PRIMARY KEY') {
                 $arrayColumns = $value->getColumns();
                 $returnPrimaryColumn = $arrayColumns[0];
@@ -1463,45 +1706,47 @@ class ZendAdapter extends AdapterAbstract implements AdapterInterface {
      */
     private function geraLogSistema($query, $queryAction) {
 
-        /* Pega o IP do usuário */
-        $ip = new \Cityware\Utility\Ip\CaptureIp();
+        try {
+            /* Pega o IP do usuário */
+            $ip = new \Cityware\Utility\Ip\CaptureIp();
 
-        /* Obtem o indece da sessão */
-        $searchReplace = Array(':', '/', '\\', '_', '-', '.');
-        $urlSession = str_replace($searchReplace, '', URL_DEFAULT);
-        $indexSession = strtoupper(self::$aSession['moduleName']) . '_' . $urlSession;
+            /* Obtem o indece da sessão */
+            $indexSession = strtoupper($this->aSession['moduleName']);
 
-        $sessionNamespace = new SessionContainer($indexSession);
-        $aSession = $sessionNamespace->getArrayCopy();
+            $sessionNamespace = new SessionContainer($indexSession);
+            $aSession = $sessionNamespace->getArrayCopy();
 
-        $this->varExecuteLog = false;
+            $this->varExecuteLog = false;
 
-        if (isset($aSession['acl'])) {
-            unset($aSession['acl']);
+            if (isset($aSession['acl'])) {
+                unset($aSession['acl']);
+            }
+
+            if (isset($aSession['menu'])) {
+                unset($aSession['menu']);
+            }
+
+            $this->insert('des_modulo', $this->aSession['moduleName']);
+            $this->insert('des_acao', $this->aSession['actionName']);
+            $this->insert('des_controlador', $this->aSession['controllerName']);
+
+            $this->insert('des_session', json_encode($aSession));
+            $this->insert('des_queryaction', strtoupper($queryAction));
+            $this->insert('des_sqlquery', str_replace("'", '\"', $query));
+            $this->insert('des_phpserver', json_encode($_SERVER));
+
+            $this->insert('des_ip', $ip->IP['client']);
+            $this->insert('des_proxy', $ip->IP['proxy']);
+            $this->insert('dta_cadastro', date('Y-m-d H:i:s'));
+            $this->insert('ind_status', 'A');
+            $this->from('tab_db_log', null, 'log');
+            $this->setDebug(false);
+            $this->executeInsertQuery();
+
+            $this->varExecuteLog = true;
+        } catch (\Exception $exc) {
+            throw new \Exception('Erro ao tentar gravar o log do sistema - ' . $exc->getMessage());
         }
-
-        if (isset($aSession['menu'])) {
-            unset($aSession['menu']);
-        }
-
-        $this->insert('des_modulo', self::$aSession['moduleName']);
-        $this->insert('des_acao', self::$aSession['actionName']);
-        $this->insert('des_controlador', self::$aSession['controllerName']);
-
-        $this->insert('des_session', json_encode($aSession));
-        $this->insert('des_queryaction', strtoupper($queryAction));
-        $this->insert('des_sqlquery', str_replace("'", '\"', $query));
-        $this->insert('des_phpserver', json_encode($_SERVER));
-
-        $this->insert('des_ip', $ip->IP['client']);
-        $this->insert('des_proxy', $ip->IP['proxy']);
-        $this->insert('dta_cadastro', date('Y-m-d H:i:s'));
-        $this->insert('ind_status', 'A');
-        $this->from('tab_db_log', null, 'log');
-        $this->setDebug(false);
-        $this->executeInsertQuery();
-
-        $this->varExecuteLog = true;
     }
 
 }

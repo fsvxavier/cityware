@@ -6,9 +6,12 @@ abstract class AdapterAbstract
 {
     /**
      * Conexão padrão
+     * @param string $adapterName
      * @return object
+     * @throws Exception
      */
-    abstract public function getAdapter();
+    abstract public function getAdapter($adapterName = null);
+
 
     /**
      * Função que define a exibição do debug
@@ -140,22 +143,49 @@ abstract class AdapterAbstract
     abstract public function limit($varSqlLimit, $varSqlOffset = null);
 
     /**
-     * Função utilizada para definir chamada de commit e rollback
+     * Função utilizada para definir chamada de TRANSACTION
+     * @param string $adapterName
      * @return \Cityware\Db\Adapter\ZendAdapter
      */
-    abstract public function transaction();
+    abstract public function transaction($adapterName = null);
 
     /**
-     * Função de definição de commit
+     * Função de execução de COMMIT
+     * @param string $adapterName
      * @return \Cityware\Db\Adapter\ZendAdapter
      */
-    abstract public function commit();
+    abstract public function commit($adapterName = null);
 
     /**
-     * Função de definição de Rollback
+     * Função de execução de ROLLBACK
+     * @param string $adapterName
      * @return \Cityware\Db\Adapter\ZendAdapter
      */
-    abstract public function rollback();
+    abstract public function rollback($adapterName = null);
+    
+    /**
+     * Função utilizada para definir chamada de TRANSACTION identificada
+     * @param string $transactionId
+     * @param string $adapterName
+     * @return \Cityware\Db\Adapter\ZendAdapter
+     */
+    abstract public function prepareTransaction($transactionId, $adapterName = null);
+
+    /**
+     * Função de execução de COMMIT de transação identificada
+     * @param string $transactionId
+     * @param string $adapterName
+     * @return \Cityware\Db\Adapter\ZendAdapter
+     */
+    abstract public function preparedCommit($transactionId, $adapterName = null);
+
+    /**
+     * Função de execução de ROLLBACK de transação identificada
+     * @param string $transactionId
+     * @param string $adapterName
+     * @return \Cityware\Db\Adapter\ZendAdapter
+     */
+    abstract public function preparedRollback($transactionId, $adapterName = null);
     
     /**
      * Função de definição de commit
@@ -173,6 +203,13 @@ abstract class AdapterAbstract
      */
     abstract public function executeSelectQueryCache($activationPaginator = false, $pageNumber = 1, $limitPerPage = 10);
 
+    /**
+     * FUNCAO QUE MONTA O COMANDO SUB-SELECT NO BANCO DE DADOS E RETORNA A STRING
+     * @return mixed
+     * @throws Exception
+     */
+    abstract public function executeSubSelectQuery();
+    
     /**
      * FUNCAO QUE EXECUTA O COMANDO SELECT NO BANCO DE DADOS
      * @param  boolean $activationPaginator

@@ -23,8 +23,9 @@ class Number {
      */
     public static function integerNumber($value, $language = 'pt_BR') {
         $valInteger = new \NumberFormatter($language, \NumberFormatter::DECIMAL);
+        $valInteger->setAttribute(\NumberFormatter::MIN_FRACTION_DIGITS, 0);
         $valInteger->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, 0);
-        return $valInteger->format($value, \NumberFormatter::TYPE_INT64);
+        return $valInteger->format((float) $value, \NumberFormatter::TYPE_INT64);
     }
     
     /**
@@ -36,6 +37,7 @@ class Number {
      */
     public static function currency($value, $precision = 2, $language = 'pt_BR') {
         $valCurrency = new \NumberFormatter($language, \NumberFormatter::CURRENCY);
+        $valCurrency->setAttribute(\NumberFormatter::MIN_FRACTION_DIGITS, $precision);
         $valCurrency->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, $precision);
         return $valCurrency->format((float) $value, \NumberFormatter::TYPE_DOUBLE);
     }
@@ -48,9 +50,10 @@ class Number {
      * @return float
      */
     public static function decimalNumber($value, $precision = 2, $language = 'pt_BR') {
-        $valCurrency = new \NumberFormatter($language, \NumberFormatter::DECIMAL);
-        $valCurrency->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, $precision);
-        return $valCurrency->format((float) $value, \NumberFormatter::TYPE_DOUBLE);
+        $valDecimal = new \NumberFormatter($language, \NumberFormatter::DECIMAL);
+        $valDecimal->setAttribute(\NumberFormatter::MIN_FRACTION_DIGITS, $precision);
+        $valDecimal->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, $precision);
+        return $valDecimal->format((float) $value, \NumberFormatter::DECIMAL);
     }
 
 }

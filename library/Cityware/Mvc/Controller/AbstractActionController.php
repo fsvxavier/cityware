@@ -21,21 +21,19 @@ use Cityware\View\Model\ViewModel;
 abstract class AbstractActionController extends ZendAbstractActionController {
 
     private $headTitle = Array(), $headCssLink = Array(), $headCssStyle = Array(), $headJsScript = Array(),
-            $headJsLink = Array(), $metaName = Array(), $metaProperty = Array(), $metaHttpEquiv = Array();
+            $headLink = Array(), $headJsLink = Array(), $metaName = Array(), $metaProperty = Array(), $metaHttpEquiv = Array();
     private $viewModel = null, $doctype, $contentType, $contentLang, $favicon, $sessionAdapter, $globalConfig, $image;
-
     public $globalRoute, $module, $controller, $action;
-
 
     public function __construct() {
 
         /* Acesso o arquivo de configuração global */
         $this->globalConfig = \Zend\Config\Factory::fromFile(GLOBAL_CONFIG_PATH . 'global.php');
-		
+
         $this->getViewModel();
-        
-		$this->globalRoute = $this->getSessionAdapter('globalRoute');
-        
+
+        $this->globalRoute = $this->getSessionAdapter('globalRoute');
+
         $this->module = $this->sessionAdapter->moduleName;
         $this->controller = $this->sessionAdapter->controllerName;
         $this->action = $this->sessionAdapter->actionName;
@@ -118,8 +116,8 @@ abstract class AbstractActionController extends ZendAbstractActionController {
     public function render($templateName, array $variables = null) {
         $viewModel = $this->getViewModel();
         $viewModel->setTemplate($templateName); // caminho para o template que será renderizado
-        
-        if($variables != null and is_array($variables)){
+
+        if ($variables != null and is_array($variables)) {
             foreach ($variables as $key => $value) {
                 $viewModel->setVariable($key, $value);
             }
@@ -214,14 +212,16 @@ abstract class AbstractActionController extends ZendAbstractActionController {
                 $sessionNamespace->init = 1;
                 $sessionNamespace->remoteAddr = $request->getServer('REMOTE_ADDR');
                 $sessionNamespace->httpUserAgent = $request->getServer('HTTP_USER_AGENT');
+                /*
+                  $chain = $sessionManager->getValidatorChain();
+                  $validatorUserAgent = new \Zend\Session\Validator\HttpUserAgent($sessionNamespace->httpUserAgent);
+                  $chain->attach('session.validate', array($validatorUserAgent, 'isValid'));
+                  $validatorAddr = new \Zend\Session\Validator\RemoteAddr($sessionNamespace->remoteAddr);
+                  $chain->attach('session.validate', array($validatorAddr, 'isValid'));
 
-                $chain = $sessionManager->getValidatorChain();
-                $validatorUserAgent = new \Zend\Session\Validator\HttpUserAgent($sessionNamespace->httpUserAgent);
-                $chain->attach('session.validate', array($validatorUserAgent, 'isValid'));
-                $validatorAddr = new \Zend\Session\Validator\RemoteAddr($sessionNamespace->remoteAddr);
-                $chain->attach('session.validate', array($validatorAddr, 'isValid'));
-
-                $sessionManager->setValidatorChain($chain);
+                  $sessionManager->setValidatorChain($chain);
+                 * 
+                 */
             }
             $sessionNamespace->setDefaultManager($sessionManager);
         } else {
@@ -470,6 +470,19 @@ abstract class AbstractActionController extends ZendAbstractActionController {
     }
 
     /**
+     * Define Link de Script JS da página
+     * @param  string                                            $url
+     * @param  string                                            $type
+     * @param  array                                             $attrs
+     * @return \Cityware\Controller\AbstractActionController
+     */
+    public function setHeadLink($url, $rel, $type = null, $media = null, $sizes = null) {
+        array_push($this->headLink, Array('href' => $url, 'rel' => $rel, 'type' => $type, 'media' => $media, 'sizes' => $sizes));
+
+        return $this;
+    }
+
+    /**
      * Função de processamento no dispatch da action
      * @param  \Zend\Mvc\MvcEvent $e
      * @return object
@@ -535,7 +548,7 @@ abstract class AbstractActionController extends ZendAbstractActionController {
                 }
             }
         }
-        
+
         /**
          * Define Link de Scripts JS na página
          */
@@ -543,6 +556,16 @@ abstract class AbstractActionController extends ZendAbstractActionController {
             $headJsLink = $viewHelperManager->get('headScript');
             foreach ($this->headJsLink as $key => $value) {
                 $headJsLink()->appendFile($value['url'], $value['type'], $value['attrs'])->setSeparator(PHP_EOL);
+            }
+        }
+
+        /**
+         * Define Link de cabeçalho da página
+         */
+        if (!empty($this->headLink)) {
+            $headLink = $viewHelperManager->get('headLink');
+            foreach ($this->headLink as $valueHeadLink) {
+                $headLink($valueHeadLink, 'PREPEND')->setSeparator(PHP_EOL);
             }
         }
 

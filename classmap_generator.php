@@ -28,7 +28,8 @@ use Zend\Loader\StandardAutoloader;
  * --sort|-s                    Alphabetically sort classes
  */
 
-$zfLibraryPath = getenv('LIB_PATH') ? getenv('LIB_PATH') : __DIR__ . '/../ZF2/library';
+$zfLibraryPath = getenv('LIB_PATH') ? getenv('LIB_PATH') : __DIR__ . '/../../zendframework/zendframework/library';
+
 if (is_dir($zfLibraryPath)) {
     // Try to load StandardAutoloader from library
     if (false === include($zfLibraryPath . '/Zend/Loader/StandardAutoloader.php')) {

@@ -28,9 +28,7 @@ use Zend\Loader\StandardAutoloader;
  * --overwrite|-w               Whether or not to overwrite existing autoload
  *                              file
  */
-
-
-$libPath = getenv('LIB_PATH') ? getenv('LIB_PATH') : __DIR__ . '/../ZF2/library';
+$libPath = getenv('LIB_PATH') ? getenv('LIB_PATH') : __DIR__ . '/../../zendframework/zendframework/library';
 if (is_dir($libPath)) {
     // Try to load StandardAutoloader from library
     if (false === include($libPath . '/Zend/Loader/StandardAutoloader.php')) {
